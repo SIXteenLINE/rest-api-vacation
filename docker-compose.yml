@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+    container_name: app
+    volumes:
+      - ./laravel-project:/var/www/html
+    networks:
+      - app-network
+    depends_on:
+      - db
+
+
+  webserver:
+    image: nginx:alpine
+    container_name: webserver
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - "8000:80" # Перенаправление с хоста на контейнер
+    networks:
+      - app-network
+    depends_on:
+      - app
+
+  db:
+    image: postgres:13
+    container_name: db
+    environment:
+      POSTGRES_DB: vacation_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+volumes:
+  db-data:
+
+networks:
+  app-network:
+    driver: bridge
